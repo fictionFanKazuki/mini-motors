@@ -1,3 +1,13 @@
+function main()
+    specificImpulse(1,2,3)
+    thrust(1,2,3,4,5)
+    machNumber(1,2)
+    speedOfSound(1,2,3)
+    stagnationTemp(1,2)
+    stagnationPressure(1,2)
+    stagnationDensity(1,2)
+end
+
 function Isp = specificImpulse(I, mp, g0)
     Isp = I/(mp*g0);
 end
@@ -8,7 +18,7 @@ end
 
 function M = machNumber(v, a)
     M = v / a;
-end
+end  
 
 function a = speedOfSound(adiabaticConstant, R, T)
     a = sqrt(adiabaticConstant * R * T);
@@ -19,9 +29,9 @@ function stagnationTemp = stagnationTemp(adiabaticConstant, M)
 end
 
 function stagnationPressure = stagnationPressure(adiabaticConstant, M)
-    stagnationPressure = (1+(y-1)/2*M^2)^(y/(y-1));
+    stagnationPressure = (1+(adiabaticConstant-1)/2*M^2)^(adiabaticConstant/(adiabaticConstant-1));
 end
 
 function stagnationDensity = stagnationDensity(adiabaticConstant, M)
-    stagnationDensity = (1+(y-1)/2*M^2)^(1/(y-1));
+    stagnationDensity = (1+(adiabaticConstant-1)/2*M^2)^(1/(adiabaticConstant-1));
 end
