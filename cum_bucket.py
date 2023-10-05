@@ -12,9 +12,11 @@ speed_of_sound = 1100 #ft/s
 
 
 def simulate(num_grains, grain_length, grain_inner_diameter, throat_diameter):
-    mass = rho*num_grains*grain_length*math.pi*(grain_inner_diameter/2)^2
-
-    meop = stagnationpressure(machnumber())
+    mass = rho*num_grains*grain_length*math.pi*((3.239/2)**2 - (grain_inner_diameter/2)**2)
+    throat_area = math.pi*((throat_diameter/2)**2)
+    burn_area = 2*math.pi*(((3.239/2)**2) + grain_length)
+    while mass:
+        meop = stagnationpressure(machnumber())
     pass
 
 
@@ -24,8 +26,8 @@ def specificimpulse(impulse, propmass, gravconst):
 def thrust(massflow, exhaustvelocity, exhaustarea, exhaustpressure, ambientpressure):
     return ((massflow * exhaustvelocity) + ((exhaustpressure - ambientpressure) * exhaustarea))
 
-def machnumber(velocity, speedsound):
-    return (velocity / speedsound)
+def machnumber(flow_velocity, speedsound):
+    return (flow_velocity / speedsound)
 
 def stagnationtemperature(machnumber):
     return (1+((gamma-1)/2)*(machnumber**2))
