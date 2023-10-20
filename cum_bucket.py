@@ -16,9 +16,10 @@ exitarea = 0 # i had to add these variables for some fucking optimization stuff
 throatarea = 0
 
 def simulate(num_grains, grain_length, grain_inner_diameter, throat_diameter, exit_area):
-    mass = rho*num_grains*grain_length*math.pi*((3.239/2)**2 - (grain_inner_diameter/2)**2)
-    throat_area = math.pi*((throat_diameter/2)**2)
-    burn_area = 2*math.pi*(((3.239/2)**2) + grain_length)*num_grains
+    initmass = rho*num_grains*grain_length*math.pi*((5/2)**2 - (grain_inner_diameter/2)**2)
+    #throat_area = math.pi*((throat_diameter/2)**2)
+    throat_area = throat_diameter
+    initburn = 2*math.pi*(((5/2)**2) + grain_length)*num_grains
     t = 0
     impulse = 0
     global exitarea 
@@ -26,17 +27,30 @@ def simulate(num_grains, grain_length, grain_inner_diameter, throat_diameter, ex
     global throatarea
     throatarea = throat_area
 
-    optimized_mach = optimize.root_scalar(optimize_this)
+    optimized_mach = optimize.root_scalar(optimize_this, bracket=(1,10))
     exit_mach_number = optimized_mach["root"]
-    print(optimized_mach["converged"])
-    while burn_area>0:
-        t += TIME_INC
+    sum_impulse = 0
+    mass = initmass
+    burn_area = initburn
+    max_thrust = 0
+    average_thrust = 0
+    iteration = 0
+    impulse = 0
+    while burn_area>0 and mass>0:
+        iteration += 1
+        t = TIME_INC
         mass = mass - mass_flow(burn_area, burn_rate(chamber_pressure(burn_area, throat_area)))*t
         burn_area = burn_area - burn_rate(chamber_pressure(burn_area, throat_area))*t
         current_thrust = thrust(mass_flow(burn_area, burn_rate(chamber_pressure(burn_area, throat_area))), exit_velocity(exit_mach_number), exit_area, stagnationpressure(exit_mach_number), ambient_pressure)
-        impulse = current_thrust*TIME_INC
-    specific_impulse = specificimpulse(impulse, mass)
-    return 1/specific_impulse
+        if current_thrust < 0:
+            print(iteration)
+        if max_thrust < current_thrust:
+            max_thrust = current_thrust
+        average_thrust = ((iteration-1)*average_thrust + current_thrust)/iteration
+        impulse = impulse + current_thrust*TIME_INC
+        sum_impulse += impulse
+    specific_impulse = specificimpulse(sum_impulse, initmass)
+    return (exit_mach_number, t, specific_impulse, initburn, average_thrust, max_thrust, sum_impulse, t*iteration)
 
         
 def optimize_this(mach_number):
@@ -58,6 +72,7 @@ def stagnationpressure(mach_number):
     return ((1+((gamma-1)/2)*(mach_number**2))**(gamma/(gamma-1)))
 
 def stagnationdensity(mach_number):
+    print((1+((gamma-1)/2)*(mach_number**2))**(1/(gamma-1)))
     return ((1+((gamma-1)/2)*(mach_number**2))**(1/(gamma-1)))
 
 def areamach_numberrelation(mach_number):
@@ -75,4 +90,4 @@ def chamber_pressure(burn_area, throat_area):
 def rocket_equation(exit_velocity, initial_mass, empty_mass):
     return exit_velocity*math.log(initial_mass/empty_mass)
 
-print(optimize.differential_evolution(simulate)["x"])
+print(simulate(5, 10, 2.1805, 1.687943, 9.541439))
