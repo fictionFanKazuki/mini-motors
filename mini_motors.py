@@ -19,7 +19,7 @@ def simulate(num_grains, grain_length, grain_inner_diameter, throat_diameter, ex
     initmass = rho*num_grains*grain_length*(math.pi*((5/2)**2 - (grain_inner_diameter/2)**2))
     #throat_area = math.pi*((throat_diameter/2)**2)
     throat_area = throat_diameter
-    initburn = 2*math.pi*(grain_inner_diameter/2)*grain_length + 2*math.pi*((5/2)**2 - (grain_inner_diameter/2)**2)
+    initburn = (2*math.pi*(grain_inner_diameter/2)*grain_length + 2*math.pi*((5/2)**2 - (grain_inner_diameter/2)**2)) * num_grains
     t = 0
     impulse = 0
     global exitarea 
@@ -39,8 +39,9 @@ def simulate(num_grains, grain_length, grain_inner_diameter, throat_diameter, ex
     while burn_area>0 and mass>0:
         iteration += 1
         t = TIME_INC
+        burnedLength = burn_rate(chamber_pressure(burn_area, throat_area))*t
+        burn_area = (2*math.pi*((grain_inner_diameter + 2*burnedLength)/2)*(grain_length-2*burnedLength) + 2*math.pi*((5/2)**2 - ((grain_inner_diameter+2*burnedLength)/2)**2))* num_grains
         mass = mass - mass_flow(burn_area, burn_rate(chamber_pressure(burn_area, throat_area)))*t
-        burn_area = burn_area - burn_rate(chamber_pressure(burn_area, throat_area))*t
         current_thrust = thrust(mass_flow(burn_area, burn_rate(chamber_pressure(burn_area, throat_area))), exit_velocity(exit_mach_number), exit_area, stagnationpressure(exit_mach_number), ambient_pressure)
         if current_thrust < 0:
             print(iteration)
