@@ -41,25 +41,18 @@ def simulate(num_grains, grain_length, grain_inner_diameter, throat_diameter, ex
     while burn_area>0 and mass>0:
         iteration += 1
         t = TIME_INC
-        #print(f'cp {chamber_pressure(burn_area, throat_area)}')
         burnedLength = burn_rate(chamber_pressure(burn_area, throat_area))*t
-        #print(f'bl, {burnedLength}')
-        #print(f'ba1 {burn_area}')
         newInnerDiameter = newInnerDiameter + 2*burnedLength
         newLength = newLength - 2*burnedLength
-        #print(f'dia {newInnerDiameter}')
-        #print(f'len {newLength}')
         burn_area = (2*math.pi*((newInnerDiameter)/2)*(newLength) + 2*math.pi*((5/2)**2 - ((newInnerDiameter)/2)**2))* num_grains
-        #print(f'ba2 {burn_area}')
         mass = mass - mass_flow(burn_area, burn_rate(chamber_pressure(burn_area, throat_area)))*t
-        #print(f'm {mass}')
         current_thrust = thrust(mass_flow(burn_area, burn_rate(chamber_pressure(burn_area, throat_area))), exit_velocity(exit_mach_number), exit_area, stagnationpressure(exit_mach_number), ambient_pressure)
         if current_thrust < 0:
             print(iteration)
         if max_thrust < current_thrust:
             max_thrust = current_thrust
         average_thrust = ((iteration-1)*average_thrust + current_thrust)/iteration
-        impulse = impulse + current_thrust*TIME_INC
+        impulse = current_thrust*TIME_INC
         sum_impulse += impulse
     specific_impulse = specificimpulse(sum_impulse, initmass)
     return (exit_mach_number, t, specific_impulse, initburn, average_thrust, max_thrust, sum_impulse, t*iteration)
