@@ -1,7 +1,7 @@
 import math
 import scipy.integrate as integrate
 import scipy.optimize as optimize
-TIME_INC = 0.1
+TIME_INC = 0.001
 rho = 0.0018 #slugs/in^3
 a = 0.0270
 gamma = 1.2
