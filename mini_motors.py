@@ -38,24 +38,41 @@ def simulate(num_grains, grain_length, grain_inner_diameter, throat_diameter, ex
     impulse = 0
     newInnerDiameter = grain_inner_diameter
     newLength = grain_length
+    max_chamber_pressure = 0
+    max_mass_flux = 0
+    print(mass)
     while burn_area>0 and mass>0:
         iteration += 1
         t = TIME_INC
-        burnedLength = burn_rate(chamber_pressure(burn_area, throat_area))*t
+        cp = chamber_pressure(burn_area, throat_area)
+        br= burn_rate(cp)
+
+        burnedLength = br*t
         newInnerDiameter = newInnerDiameter + 2*burnedLength
         newLength = newLength - 2*burnedLength
         burn_area = (2*math.pi*((newInnerDiameter)/2)*(newLength) + 2*math.pi*((5/2)**2 - ((newInnerDiameter)/2)**2))* num_grains
-        mass = mass - mass_flow(burn_area, burn_rate(chamber_pressure(burn_area, throat_area)))*t
-        current_thrust = thrust(mass_flow(burn_area, burn_rate(chamber_pressure(burn_area, throat_area))), exit_velocity(exit_mach_number), exit_area, stagnationpressure(exit_mach_number), ambient_pressure)
-        if current_thrust < 0:
-            print(iteration)
+        mf = mass_flow(burn_area, br)
+        mass = mass - mf*t
+
+        current_thrust = thrust(mf, exit_velocity(exit_mach_number), exit_area, (((1+((gamma-1)/2)*(exit_mach_number**2))**(-gamma/(gamma-1))) * cp), ambient_pressure)
+
         if max_thrust < current_thrust:
             max_thrust = current_thrust
+
+        if max_chamber_pressure < cp:
+            max_chamber_pressure = cp
+        
+        if max_mass_flux < mf:
+            max_mass_flux = mf
+
         average_thrust = ((iteration-1)*average_thrust + current_thrust)/iteration
+
         impulse = current_thrust*TIME_INC
+
         sum_impulse += impulse
+
     specific_impulse = specificimpulse(sum_impulse, initmass)
-    return (exit_mach_number, t, specific_impulse, initburn, average_thrust, max_thrust, sum_impulse, t*iteration)
+    return (exit_mach_number, t, specific_impulse, initburn, average_thrust, max_thrust, sum_impulse, t*iteration, max_chamber_pressure, exit_velocity(exit_mach_number), max_mass_flux)
         
 def optimize_this(mach_number):
     return (exitarea/throatarea)**2 - areamach_numberrelation(mach_number)
