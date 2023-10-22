@@ -1,16 +1,18 @@
 import math
 import scipy.integrate as integrate
 import scipy.optimize as optimize
-TIME_INC = 0.001
+TIME_INC = 0.1
 rho = 0.0018 #slugs/in^3
 a = 0.0270
 gamma = 1.2
 cstar = 4890 # ft/s
 R = 2000 #psi.ft^3.slugs^-1.R^-1
 T0 = 4700 # R
+Tinit = 518.67
 g0 = 32.1741 #ft/s^2
 n = 0.30
 speed_of_sound = math.sqrt(gamma*R*T0) #ft/s
+print(speed_of_sound)
 ambient_pressure = 14.6959
 exitarea = 0 # i had to add these variables for some fucking optimization stuff
 throatarea = 0
@@ -45,7 +47,8 @@ def simulate(num_grains, grain_length, grain_inner_diameter, throat_area, exit_a
         t = TIME_INC
         cp = chamber_pressure(burn_area, throat_area)
         br= burn_rate(cp)
-
+        current_temp = 1/stagnationtemperature(exit_mach_number) * T0
+        current_speed_of_sound = math.sqrt(gamma*R*current_temp)
         burnedLength = br*t
         newInnerDiameter = newInnerDiameter + 2*burnedLength
         newLength = newLength - 2*burnedLength
@@ -53,8 +56,8 @@ def simulate(num_grains, grain_length, grain_inner_diameter, throat_area, exit_a
         mf = mass_flow(burn_area, br)
         mass = mass - mf*t
 
-        current_thrust = thrust(mf, exit_velocity(exit_mach_number), exit_area, (((1+((gamma-1)/2)*(exit_mach_number**2))**(-gamma/(gamma-1))) * cp), ambient_pressure)
-
+        current_thrust = thrust(mf, exit_mach_number*current_speed_of_sound, exit_area, (((1+((gamma-1)/2)*(exit_mach_number**2))**(-gamma/(gamma-1))) * cp), ambient_pressure)
+        #print('t', current_thrust, 'mf', mf, 'ev', exit_velocity(exit_mach_number), 'ea', exit_area, 'pe', (((1+((gamma-1)/2)*(exit_mach_number**2))**(-gamma/(gamma-1))) * cp), 'ap', ambient_pressure)
         if max_thrust < current_thrust:
             max_thrust = current_thrust
 
@@ -72,7 +75,10 @@ def simulate(num_grains, grain_length, grain_inner_diameter, throat_area, exit_a
 
     specific_impulse = specificimpulse(sum_impulse, initmass)
     return (exit_mach_number, t, specific_impulse, initburn, average_thrust, max_thrust, sum_impulse, t*iteration, max_chamber_pressure, exit_velocity(exit_mach_number), max_mass_flux)
-        
+
+def stagnationtemperature(mach_number):        
+    return (1+((gamma-1)/2)*mach_number**2)
+
 def optimize_this(mach_number):
     return (exitarea/throatarea)**2 - areamach_numberrelation(mach_number)
 
