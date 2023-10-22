@@ -15,10 +15,9 @@ ambient_pressure = 14.6959
 exitarea = 0 # i had to add these variables for some fucking optimization stuff
 throatarea = 0
 
-def simulate(num_grains, grain_length, grain_inner_diameter, throat_diameter, exit_area):
+def simulate(num_grains, grain_length, grain_inner_diameter, throat_area, exit_area):
     initmass = rho*num_grains*grain_length*(math.pi*((5/2)**2 - (grain_inner_diameter/2)**2))
     #throat_area = math.pi*((throat_diameter/2)**2)
-    throat_area = throat_diameter
     initburn = (2*math.pi*(grain_inner_diameter/2)*grain_length + 2*math.pi*((5/2)**2 - (grain_inner_diameter/2)**2)) * num_grains
     t = 0
     impulse = 0
